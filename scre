@@ -1,0 +1,68 @@
+#!/usr/bin/bash
+
+# scre
+# Screenshot utility by Dmitry Kudriavtsev
+
+# Settings
+
+# The path to store the screenshots locally.
+localpath=~/Pictures
+
+# The server that the images will be scp'd to.
+server='image-upload@dk0.us'
+
+# The path on the server to put the images.
+serverpath='/var/www/files/screenshots'
+
+# Retrieve the name of the current active program.
+program=$(xprop -id $(xdotool getactivewindow) | grep _NET_WM_NAME | cut -d'"' -f2|cut -d \n -f2)
+
+# Format the date in your desired format.
+date=$(date +'%Y-%m-%d_%H-%M-%S')
+
+# The final filename that will be stored/copied.
+filename="$program"-"$date".png
+
+# The prefix to the URLs that the images will have when uploaded.
+url_prefix="http://s.dk0.us"
+
+# The sound played after a successful upload.
+sound=~/bin/TaskCompletedSound.wav
+
+# The script.
+
+# Fail on errors
+set -e
+
+# Function to encode a URL.
+urlencode() {
+  local string="${1}"
+  local strlen=${#string}
+  local encoded=""
+  local pos c o
+
+  for (( pos=0 ; pos<strlen ; pos++ )); do
+     c=${string:$pos:1}
+     case "$c" in
+        [-_.~a-zA-Z0-9] ) o="${c}" ;;
+        * )               printf -v o '%%%02x' "'$c"
+     esac
+     encoded+="${o}"
+  done
+  echo -n "${encoded}"
+}
+
+# The final URL, with encoded image name.
+url="$url_prefix"/$(urlencode "$filename")
+
+# Take the screenshot, save to the correct path, copy it to the clipboard.
+maim -s | tee "$localpath"/"$filename" | xclip -sel clip -t image/png
+
+# Copy the image to the server using scp. If successful:
+if scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename"; then
+  # Overwrite the clipboard (currently cocntaining image) with the image's URL.
+  echo -n "$url" | xclip -sel clip
+
+  # Play the success sound.
+  aplay "$sound"
+fi
