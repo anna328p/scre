@@ -1,6 +1,10 @@
 # scre
 Screenshot utility that mimics the usability of ShareX.
 
+## What does it do?
+
+When invoked, scre takes a screenshot, optionally processes it, uploads it to a server, then copies the URL to the clipboard.
+
 ## Dependencies
 
 - GNU Bash
