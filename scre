@@ -59,10 +59,8 @@ url="$url_prefix"/$(urlencode "$filename")
 maim -s --hidecursor | tee "$localpath"/"$filename" | xclip -sel clip -t image/png
 
 # Copy the image to the server using scp. If successful:
-if scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename"; then
-  # Overwrite the clipboard (currently cocntaining image) with the image's URL.
-  echo -n "$url" | xclip -sel clip
-
-  # Play the success sound.
+  # Overwrite the clipboard (currently cocntaining image) with the image's URL. \
+  # Play the success sound. \
+scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename" && \
+  echo -n "$url" | xclip -sel clip && \
   aplay "$sound"
-fi
