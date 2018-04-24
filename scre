@@ -15,7 +15,7 @@ server='image-upload@dk0.us'
 serverpath='/var/www/files/screenshots'
 
 # Retrieve the name of the current active program.
-program=$(xprop -id $(xdotool getactivewindow) | grep _NET_WM_NAME | cut -d'"' -f2|cut -d \n -f2)
+program=$(xprop -id $(xdotool getactivewindow) | grep WM_CLASS | sed -n 's/^.*"\(.*\)",.*$/\1/p')
 
 # Format the date in your desired format.
 date=$(date +'%Y-%m-%d_%H-%M-%S')
