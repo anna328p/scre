@@ -6,7 +6,7 @@
 # Settings
 
 # The path to store the screenshots locally.
-localpath=~/Pictures
+localpath=~/Pictures/Screenshots
 
 # The server that the images will be scp'd to.
 server='image-upload@dk0.us'
@@ -15,16 +15,20 @@ server='image-upload@dk0.us'
 serverpath='/var/www/files/screenshots'
 
 # Retrieve the name of the current active program.
-program=$(xprop -id $(xdotool getactivewindow) | grep WM_CLASS | sed -n 's/^.*"\(.*\)",.*$/\1/p')
+#program=$(xprop -id $(xdotool getactivewindow) | grep WM_CLASS | sed -n 's/^.*"\(.*\)",.*$/\1/p')
 
 # Format the date in your desired format.
 date=$(date +'%Y-%m-%d_%H-%M-%S')
 
 # The final filename that will be stored/copied.
-filename="$program"-"$date".png
+#filename="$program"-"$date".png
+#filename=$(dd if=/dev/urandom bs=1 count=3 | base64).png
+filename=$RANDOM.png
+filename_base="${filename%.*}"
 
 # The prefix to the URLs that the images will have when uploaded.
-url_prefix="http://s.dk0.us"
+#url_prefix="http://s.dk0.us"
+baseurl='http://NAME.dk0.us'
 
 # The sound played after a successful upload.
 sound=~/bin/TaskCompletedSound.wav
@@ -53,14 +57,17 @@ urlencode() {
 }
 
 # The final URL, with encoded image name.
-url="$url_prefix"/$(urlencode "$filename")
+#url="$url_prefix"/$(urlencode "$filename_base")
+url=$(echo $baseurl | sed s/NAME/$(urlencode "$filename_base")/)
 
 # Take the screenshot, save to the correct path, copy it to the clipboard.
 maim -s --hidecursor | tee "$localpath"/"$filename" | xclip -sel clip -t image/png
 
 # Copy the image to the server using scp. If successful:
-  # Overwrite the clipboard (currently cocntaining image) with the image's URL. \
-  # Play the success sound. \
+  # Overwrite the clipboard (currently containing image) with the image's URL.
+  # Play the success sound.
+  # Notify of successful screenshot.
 scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename" && \
+  notify-send "Screenshot taken." && \
   echo -n "$url" | xclip -sel clip && \
   aplay "$sound"
