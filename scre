@@ -25,10 +25,12 @@ date=$(date +'%Y-%m-%d_%H-%M-%S')
 #filename=$(dd if=/dev/urandom bs=1 count=3 | base64).png
 filename=$RANDOM.png
 filename_base="${filename%.*}"
+filename_full="$localpath"/"$filename"
 
 # The prefix to the URLs that the images will have when uploaded.
 #url_prefix="http://s.dk0.us"
-baseurl='http://NAME.dk0.us'
+#baseurl='http://NAME.dk0.us'
+baseurl='http://s.dk0.us/NAME.png'
 
 # The sound played after a successful upload.
 sound=~/bin/TaskCompletedSound.wav
@@ -61,13 +63,14 @@ urlencode() {
 url=$(echo $baseurl | sed s/NAME/$(urlencode "$filename_base")/)
 
 # Take the screenshot, save to the correct path, copy it to the clipboard.
-maim -s --hidecursor | tee "$localpath"/"$filename" | xclip -sel clip -t image/png
+maim -s --hidecursor | tee "$filename_full" | xclip -sel clip -t image/png && \
+  notify-send -i "$filename_full" "Screenshot taken." "$filename_full" 
 
 # Copy the image to the server using scp. If successful:
   # Overwrite the clipboard (currently containing image) with the image's URL.
   # Play the success sound.
   # Notify of successful screenshot.
 scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename" && \
-  notify-send "Screenshot taken." && \
+  notify-send -i "$filename_full" "Screenshot taken." "URL copied to clipboard." && \
   echo -n "$url" | xclip -sel clip && \
   aplay "$sound"
