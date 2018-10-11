@@ -71,6 +71,6 @@ maim -s --hidecursor | tee "$filename_full" | xclip -sel clip -t image/png && \
   # Play the success sound.
   # Notify of successful screenshot.
 scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename" && \
-  notify-send -i "$filename_full" "Screenshot taken." "URL copied to clipboard." && \
+  notify-send -i "$filename_full" "Screenshot uploaded." "URL copied to clipboard." && \
   echo -n "$url" | xclip -sel clip && \
   aplay "$sound"
