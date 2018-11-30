@@ -39,6 +39,7 @@ sound=~/bin/TaskCompletedSound.wav
 
 # Fail on errors
 #set -e
+set -o pipefail
 
 # Function to encode a URL.
 urlencode() {
@@ -63,14 +64,20 @@ urlencode() {
 url=$(echo $baseurl | sed s/NAME/$(urlencode "$filename_base")/)
 
 # Take the screenshot, save to the correct path, copy it to the clipboard.
-maim -s --hidecursor | tee "$filename_full" | xclip -sel clip -t image/png && \
-  notify-send -i "$filename_full" "Screenshot taken." "$filename_full" 
+#maim -s --hidecursor | tee "$filename_full" | xclip -sel clip -t image/png && \
+maim -s --hidecursor | tee "/tmp/$filename" | xclip -sel clip -t image/png && \
+  cp "/tmp/$filename" "$filename_full" && \
+  ~/bin/notify-send.sh -i "$filename_full" "Screenshot taken." "$filename_full" \
+    -o "Open:xdg-open '$filename_full'" \
+    -o "Delete:rm '$filename_full'"
 
 # Copy the image to the server using scp. If successful:
   # Overwrite the clipboard (currently containing image) with the image's URL.
   # Play the success sound.
   # Notify of successful screenshot.
-scp -q "$localpath"/"$filename" "$server":"$serverpath"/"$filename" && \
-  notify-send -i "$filename_full" "Screenshot uploaded." "URL copied to clipboard." && \
+scp -q "/tmp/$filename" "$server":"$serverpath"/"$filename" && \
+  ~/bin/notify-send.sh -i "$filename_full" "Screenshot uploaded." "URL copied to clipboard." \
+    -o "Open:xdg-open '$url'" \
+    -o "Delete:ssh $server rm '$serverpath'/'$filename'" && \
   echo -n "$url" | xclip -sel clip && \
   aplay "$sound"
